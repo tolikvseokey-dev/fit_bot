@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import time
-import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict
 
@@ -15,23 +13,20 @@ from dotenv import load_dotenv
 from config import load_config
 from texts import t
 import database as db
-from pdf_export import export_day_pdf
 
 load_dotenv()
 cfg = load_config()
 
-# Init DB
 db.init_db(cfg.db_path)
 
 bot = telebot.TeleBot(cfg.bot_token, parse_mode="HTML")
 
-# --- In-memory state (MVP)
 STATE: Dict[int, Dict[str, Any]] = {}
 
-# ------------------ Helpers ------------------
 
 def now_utc():
     return datetime.now(timezone.utc)
+
 
 def is_admin_user(message_or_user) -> bool:
     username = None
@@ -41,15 +36,18 @@ def is_admin_user(message_or_user) -> bool:
         username = message_or_user.username
     return (username or "") == cfg.admin_username
 
+
 def user_lang(user_id: int) -> str:
     row = db.get_user(cfg.db_path, user_id)
     return (row["lang"] if row and row["lang"] else "ru")
+
 
 def main_menu_kb(lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(t("btn_add_food", lang), t("btn_diary", lang))
     kb.row(t("btn_summary", lang), t("btn_more", lang))
     return kb
+
 
 def more_menu_kb(lang: str, show_admin: bool):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -61,13 +59,16 @@ def more_menu_kb(lang: str, show_admin: bool):
     kb.row(t("btn_back", lang))
     return kb
 
+
 def back_kb(lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(t("btn_back", lang))
     return kb
 
+
 def log(user_id: int, event: str, meta: dict | None = None):
     db.log_event(cfg.db_path, user_id, event, meta or {})
+
 
 def ensure_user(message):
     user_id = message.from_user.id
@@ -75,22 +76,23 @@ def ensure_user(message):
     is_admin = is_admin_user(message)
     db.upsert_user(cfg.db_path, user_id, username, is_admin)
 
+
 def clear_state(user_id: int):
     STATE.pop(user_id, None)
+
 
 def set_state(user_id: int, **kwargs):
     STATE[user_id] = {**STATE.get(user_id, {}), **kwargs}
 
+
 def get_state(user_id: int) -> dict:
     return STATE.get(user_id, {})
 
-# ------------------ Language Onboarding ------------------
 
 @bot.message_handler(commands=["start"])
 def start(message):
     ensure_user(message)
     user_id = message.from_user.id
-    lang = user_lang(user_id)
 
     row = db.get_user(cfg.db_path, user_id)
     if row and row["created_at"] and row["created_at"] == row["last_seen_at"]:
@@ -101,8 +103,10 @@ def start(message):
         log(user_id, "start_first")
         return
 
+    lang = user_lang(user_id)
     bot.send_message(user_id, t("main_title", lang), reply_markup=main_menu_kb(lang))
     log(user_id, "start")
+
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("setlang:"))
 def cb_setlang(call):
@@ -113,7 +117,6 @@ def cb_setlang(call):
     bot.send_message(user_id, t("main_title", lang), reply_markup=main_menu_kb(lang))
     log(user_id, "set_lang", {"lang": lang})
 
-# ------------------ Router ------------------
 
 @bot.message_handler(func=lambda m: True, content_types=["text"])
 def router(message):
@@ -122,14 +125,12 @@ def router(message):
     lang = user_lang(user_id)
     text = (message.text or "").strip()
 
-    # Global back
     if text == t("btn_back", lang):
         clear_state(user_id)
         bot.send_message(user_id, t("main_title", lang), reply_markup=main_menu_kb(lang))
         log(user_id, "back_to_main")
         return
 
-    # State-driven steps
     st = get_state(user_id)
     if st.get("step") == "add_product_kbju":
         handle_add_product_kbju(message, lang)
@@ -150,7 +151,6 @@ def router(message):
         handle_barcode(message, lang)
         return
 
-    # Main menu
     if text == t("btn_add_food", lang):
         show_add_food_menu(user_id, lang)
         return
@@ -164,7 +164,6 @@ def router(message):
         show_summary(user_id, lang)
         return
 
-    # More menu
     if text == t("btn_my_products", lang):
         show_my_products(user_id, lang)
         return
@@ -187,7 +186,6 @@ def router(message):
             bot.send_message(user_id, "⛔", reply_markup=main_menu_kb(lang))
         return
 
-    # Add food submenu
     if text == t("btn_find_product", lang):
         start_search(user_id, lang, for_add=True)
         return
@@ -198,20 +196,15 @@ def router(message):
         start_add_new_product(user_id, lang)
         return
 
-    # Diary actions
-    if text == t("export_pdf", lang):
-        export_today_pdf(user_id, lang)
-        return
-
     bot.send_message(user_id, t("main_title", lang), reply_markup=main_menu_kb(lang))
 
-# ------------------ Menus ------------------
 
 def show_more(user_id: int, lang: str):
     row = db.get_user(cfg.db_path, user_id)
     show_admin = bool(row and row.get("is_admin", 0) == 1)
     bot.send_message(user_id, t("more_title", lang), reply_markup=more_menu_kb(lang, show_admin))
     log(user_id, "open_more")
+
 
 def show_add_food_menu(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -221,13 +214,18 @@ def show_add_food_menu(user_id: int, lang: str):
     bot.send_message(user_id, t("add_food_title", lang), reply_markup=kb)
     log(user_id, "open_add_food")
 
+
 def show_diary(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row(t("today", lang), t("export_pdf", lang))
-    kb.row(t("list_view", lang))
+    kb.row(t("today", lang), t("list_view", lang))
     kb.row(t("btn_back", lang))
-    bot.send_message(user_id, t("diary_title", lang), reply_markup=kb)
+    bot.send_message(
+        user_id,
+        t("diary_title", lang) + "\n\n📄 PDF пока временно отключен (вернём позже).",
+        reply_markup=kb
+    )
     log(user_id, "open_diary")
+
 
 def show_summary(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -236,6 +234,7 @@ def show_summary(user_id: int, lang: str):
     kb.row(t("btn_back", lang))
     bot.send_message(user_id, t("summary_title", lang), reply_markup=kb)
     log(user_id, "open_summary")
+
 
 def show_my_products(user_id: int, lang: str):
     with db.connect(cfg.db_path) as conn:
@@ -254,6 +253,7 @@ def show_my_products(user_id: int, lang: str):
     bot.send_message(user_id, "\n".join(lines), reply_markup=back_kb(lang))
     log(user_id, "open_my_products")
 
+
 def show_goals(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(t("goal_cut", lang), t("goal_maint", lang), t("goal_bulk", lang))
@@ -263,6 +263,7 @@ def show_goals(user_id: int, lang: str):
     bot.send_message(user_id, t("goals_title", lang), reply_markup=kb)
     log(user_id, "open_goals")
 
+
 def show_settings(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(t("set_lang", lang), t("set_tz", lang))
@@ -271,12 +272,12 @@ def show_settings(user_id: int, lang: str):
     bot.send_message(user_id, t("settings_title", lang), reply_markup=kb)
     log(user_id, "open_settings")
 
-# ------------------ Feedback ------------------
 
 def start_feedback(user_id: int, lang: str):
     set_state(user_id, step="feedback_text")
     bot.send_message(user_id, t("feedback_prompt", lang), reply_markup=back_kb(lang))
     log(user_id, "feedback_start")
+
 
 def handle_feedback(message, lang: str):
     user_id = message.from_user.id
@@ -289,11 +290,10 @@ def handle_feedback(message, lang: str):
     bot.send_message(user_id, t("thanks", lang), reply_markup=main_menu_kb(lang))
     log(user_id, "feedback_sent")
 
-# ------------------ Add product ------------------
 
 def start_add_new_product(user_id: int, lang: str):
     limit = db.get_free_my_products_limit(cfg.db_path)
-    has_sub = db.user_has_active_sub(cfg.db_path, user_id)  # пока можно не включать подписку — просто всегда false, но логика ок
+    has_sub = False  # подписки сейчас отключены
     if not has_sub and db.count_user_products(cfg.db_path, user_id) >= limit:
         bot.send_message(user_id, t("limit_reached", lang).format(n=limit), reply_markup=main_menu_kb(lang))
         log(user_id, "my_products_limit_hit", {"limit": limit})
@@ -302,6 +302,7 @@ def start_add_new_product(user_id: int, lang: str):
     set_state(user_id, step="add_product_kbju")
     bot.send_message(user_id, t("send_kbju_per100", lang), reply_markup=back_kb(lang))
     log(user_id, "add_product_start")
+
 
 def handle_add_product_kbju(message, lang: str):
     user_id = message.from_user.id
@@ -317,6 +318,7 @@ def handle_add_product_kbju(message, lang: str):
         return
     set_state(user_id, step="add_product_names", kbju=(kcal, p, f, c_))
     bot.send_message(user_id, t("send_names", lang), reply_markup=back_kb(lang))
+
 
 def handle_add_product_names(message, lang: str):
     user_id = message.from_user.id
@@ -342,12 +344,12 @@ def handle_add_product_names(message, lang: str):
     bot.send_message(user_id, f"✅ {name_ru} / {name_en}", reply_markup=main_menu_kb(lang))
     log(user_id, "add_product_done", {"user_product_id": user_pid})
 
-# ------------------ Search ------------------
 
 def start_search(user_id: int, lang: str, for_add: bool):
     set_state(user_id, step="search_query", for_add=for_add)
     bot.send_message(user_id, t("enter_query", lang), reply_markup=back_kb(lang))
     log(user_id, "search_start", {"for_add": for_add})
+
 
 def handle_search_query(message, lang: str):
     user_id = message.from_user.id
@@ -378,6 +380,7 @@ def handle_search_query(message, lang: str):
     bot.send_message(user_id, t("choose_product", lang), reply_markup=kb)
     log(user_id, "search_results", {"n": len(results)})
 
+
 @bot.callback_query_handler(func=lambda c: c.data.startswith("pick:"))
 def cb_pick_product(call):
     user_id = call.from_user.id
@@ -405,6 +408,7 @@ def cb_pick_product(call):
     bot.answer_callback_query(call.id, "OK")
     show_meal_picker(user_id, lang)
 
+
 def show_meal_picker(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(t("meal_breakfast", lang), t("meal_lunch", lang))
@@ -413,10 +417,8 @@ def show_meal_picker(user_id: int, lang: str):
     bot.send_message(user_id, t("pick_meal", lang), reply_markup=kb)
     log(user_id, "pick_meal")
 
-@bot.message_handler(func=lambda m: m.text in [
-    t("meal_breakfast", "ru"), t("meal_lunch", "ru"), t("meal_dinner", "ru"), t("meal_snack", "ru"),
-    t("meal_breakfast", "en"), t("meal_lunch", "en"), t("meal_dinner", "en"), t("meal_snack", "en")
-])
+
+@bot.message_handler(func=lambda m: True, content_types=["text"])
 def handle_meal_choice(message):
     ensure_user(message)
     user_id = message.from_user.id
@@ -439,11 +441,13 @@ def handle_meal_choice(message):
     bot.send_message(user_id, t("grams_hint", lang) + "\n\n" + t("enter_grams", lang), reply_markup=quick_grams_kb(lang))
     log(user_id, "meal_chosen", {"meal": meal})
 
+
 def quick_grams_kb(lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row("➕ +50 г", "➕ +100 г", "➕ +200 г")
     kb.row(t("btn_back", lang))
     return kb
+
 
 def handle_enter_grams(message, lang: str):
     user_id = message.from_user.id
@@ -487,6 +491,7 @@ def handle_enter_grams(message, lang: str):
     bot.send_message(user_id, t("added_ok", lang), reply_markup=main_menu_kb(lang))
     log(user_id, "add_food_done", {"ref_type": ref_type, "ref_id": ref_id, "grams": grams_val, "meal": meal})
 
+
 def show_recent(user_id: int, lang: str):
     rec = db.get_recent_products(cfg.db_path, user_id, limit=10)
     if not rec:
@@ -506,7 +511,6 @@ def show_recent(user_id: int, lang: str):
     bot.send_message(user_id, t("choose_product", lang), reply_markup=kb)
     log(user_id, "open_recent")
 
-# ------------------ Barcode (Open Food Facts) ------------------
 
 def handle_barcode(message, lang: str):
     user_id = message.from_user.id
@@ -560,19 +564,6 @@ def handle_barcode(message, lang: str):
     )
     log(user_id, "barcode_added", {"barcode": barcode, "user_product_id": user_pid})
 
-# ------------------ PDF Export ------------------
-
-def export_today_pdf(user_id: int, lang: str):
-    today = now_utc().strftime("%Y-%m-%d")
-    totals = db.sum_day(cfg.db_path, user_id, today)
-    pdf_dir = os.path.join(os.path.dirname(__file__), cfg.pdf_dir)
-    path = export_day_pdf(pdf_dir, user_id, today, totals, lang=lang)
-    bot.send_message(user_id, t("pdf_ready", lang))
-    with open(path, "rb") as f:
-        bot.send_document(user_id, f)
-    log(user_id, "export_pdf", {"date": today})
-
-# ------------------ Admin (минимально, без подписки/оплат) ------------------
 
 def show_admin(user_id: int, lang: str):
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -580,6 +571,7 @@ def show_admin(user_id: int, lang: str):
     kb.row("⬅️ Назад")
     bot.send_message(user_id, t("admin_title", lang), reply_markup=kb)
     log(user_id, "open_admin")
+
 
 @bot.message_handler(func=lambda m: m.text == "📈 Аналитика")
 def admin_analytics(message):
@@ -600,7 +592,6 @@ def admin_analytics(message):
         lines.append(f"• {name}: {n}")
     bot.send_message(user_id, "\n".join(lines), reply_markup=back_kb(lang))
 
-# ------------------ Run ------------------
 
 if __name__ == "__main__":
     bot.infinity_polling(skip_pending=True)
