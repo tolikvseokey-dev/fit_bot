@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 TEXTS = {
     "ru": {
         "choose_lang": "Выбери язык / Choose language:",
@@ -42,19 +40,19 @@ TEXTS = {
 
         "my_products_title": "Мои продукты",
         "limit_reached": "Упс 😅 В бесплатной версии можно хранить только {n} продуктов в «Мои продукты». Подписка снимает лимит 💎",
+
         "send_kbju_per100": "Введи КБЖУ на 100 г в формате:\n\n"
-                     "Ккал Б Ж У\n\n"
-                     "Пример: 165 31 3.6 0",
+                           "Ккал Б Ж У\n\n"
+                           "Пример: 165 31 3.6 0",
 
-        "send_names": "Теперь названия продукта.
+        "send_names": "Теперь названия продукта.\n\n"
+                      "Напиши так:\n"
+                      "RU: <название>\n"
+                      "EN: <name>\n\n"
+                      "Пример:\n"
+                      "RU: Куриная грудка\n"
+                      "EN: Chicken breast",
 
-Напиши так:
-RU: <название>
-EN: <name>
-
-Пример:
-RU: Куриная грудка
-EN: Chicken breast",
         "bad_format": "Не поняла формат 😕 Попробуй ещё раз.",
 
         "diary_title": "Дневник",
@@ -92,21 +90,11 @@ EN: Chicken breast",
         "act_high": "Высокая · постоянно в движении",
         "act_ext": "Экстремальная · спорт/тяжёлая работа",
 
-        "act_desc_min": "🪑 Минимальная (1.2)
-Сидячая работа, мало ходьбы.
-Шаги ~2–4 тыс/день.",
-        "act_desc_light": "🚶 Лёгкая (1.375)
-Много ходьбы и активный быт.
-Шаги ~5–7 тыс/день.",
-        "act_desc_med": "🚶‍♂️ Средняя (1.55)
-Активный день, часто в движении.
-Шаги ~8–10 тыс/день.",
-        "act_desc_high": "🏃 Высокая (1.725)
-Физическая работа или почти весь день на ногах.
-Шаги ~11–14 тыс/день.",
-        "act_desc_ext": "🔥 Экстремальная (1.9)
-Спорт/очень тяжёлая работа.
-Шаги 15+ тыс/день.",
+        "act_desc_min": "🪑 Минимальная (1.2)\nСидячая работа, мало ходьбы.\nШаги ~2–4 тыс/день.",
+        "act_desc_light": "🚶 Лёгкая (1.375)\nМного ходьбы и активный быт.\nШаги ~5–7 тыс/день.",
+        "act_desc_med": "🚶‍♂️ Средняя (1.55)\nАктивный день, часто в движении.\nШаги ~8–10 тыс/день.",
+        "act_desc_high": "🏃 Высокая (1.725)\nФизическая работа или почти весь день на ногах.\nШаги ~11–14 тыс/день.",
+        "act_desc_ext": "🔥 Экстремальная (1.9)\nСпорт/очень тяжёлая работа.\nШаги 15+ тыс/день.",
 
         "macros_auto": "Авто",
         "macros_manual": "Ручной",
@@ -138,146 +126,6 @@ EN: Chicken breast",
         "pdf_ready": "📄 Готово! Отправляю PDF 👇",
         "export_pdf": "📄 Экспорт в PDF",
     },
-    "en": {
-        "choose_lang": "Choose language / Выбери язык:",
-        "lang_ru": "🇷🇺 Русский",
-        "lang_en": "🇬🇧 English",
 
-        "main_title": "Main menu",
-        "btn_add_food": "➕ Add food",
-        "btn_diary": "📒 Diary",
-        "btn_summary": "📊 Summary",
-        "btn_more": "☰ More",
-        "btn_back": "⬅️ Back",
-
-        "more_title": "More",
-        "btn_my_products": "⭐ My products",
-        "btn_search": "🔎 Search",
-        "btn_goals": "🎯 Goals & norms",
-        "btn_settings": "⚙️ Settings",
-        "btn_feedback": "💬 Feedback",
-        "btn_sub": "💎 Subscription",
-        "btn_admin": "👑 Admin",
-
-        "add_food_title": "Add food",
-        "btn_find_product": "🔎 Find product",
-        "btn_recent": "🕘 Recent",
-        "btn_add_new_product": "➕ Add new product",
-
-        "pick_meal": "Pick meal:",
-        "meal_breakfast": "🍳 Breakfast",
-        "meal_lunch": "🍲 Lunch",
-        "meal_dinner": "🍽 Dinner",
-        "meal_snack": "🍏 Snack",
-
-        "enter_query": "Type a product name (RU/EN).",
-        "no_results": "No results 😕 Try another name or add a new product.",
-        "choose_product": "Choose a product:",
-        "enter_grams": "How many grams? (number, e.g. 150)",
-        "grams_hint": "Use buttons: +50, +100, +200 or type manually 👇",
-        "added_ok": "✅ Added! Logged into your diary.",
-
-        "my_products_title": "My products",
-        "limit_reached": "Oops 😅 Free plan allows only {n} items in “My products”. Subscription removes the limit 💎",
-        "send_kbju_per100": "Enter nutrition per 100 g as:
-
-Kcal P F C
-
-Example: 165 31 3.6 0",
-        "send_names": "Now product names.
-
-Send:
-RU: <name>
-EN: <name>
-
-Example:
-RU: Куриная грудка
-EN: Chicken breast",
-        "bad_format": "Wrong format 😕 Please try again.",
-
-        "diary_title": "Diary",
-        "today": "Today",
-        "pick_date": "📅 Pick date",
-        "list_view": "🧾 List view",
-        "edit_entry": "✏️ Edit entry",
-        "delete_entry": "🗑 Delete entry",
-
-        "summary_title": "Summary",
-        "sum_today": "Today",
-        "sum_week": "Week",
-        "sum_month": "Month",
-        "remaining": "🎯 Remaining",
-
-        "settings_title": "Settings",
-        "set_lang": "🌐 Language",
-        "set_tz": "🕒 Timezone",
-        "set_quick_grams": "⚡ Quick grams",
-
-        "goals_title": "Goals & norms",
-        "goal_pick": "Pick goal:",
-        "goal_cut": "Cut",
-        "goal_maint": "Maintain",
-        "goal_bulk": "Bulk",
-        "profile": "👤 Profile",
-        "activity": "🏃 Activity",
-        "cal_norm": "🧮 Calories",
-        "macros": "🥩 Macros",
-
-        "activity_pick": "Choose activity (movement-based):",
-        "act_min": "Minimal · low movement",
-        "act_light": "Light · lots of walking",
-        "act_med": "Moderate · active day",
-        "act_high": "High · always moving",
-        "act_ext": "Extreme · sport/hard work",
-
-        "act_desc_min": "🪑 Minimal (1.2)
-Mostly sitting, little walking.
-Steps ~2–4k/day.",
-        "act_desc_light": "🚶 Light (1.375)
-Lots of walking and active routine.
-Steps ~5–7k/day.",
-        "act_desc_med": "🚶‍♂️ Moderate (1.55)
-Active day, often moving.
-Steps ~8–10k/day.",
-        "act_desc_high": "🏃 High (1.725)
-Physical work or on feet most of the day.
-Steps ~11–14k/day.",
-        "act_desc_ext": "🔥 Extreme (1.9)
-Sport/very hard work.
-Steps 15k+/day.",
-
-        "macros_auto": "Auto",
-        "macros_manual": "Manual",
-
-        "feedback_title": "Feedback",
-        "feedback_prompt": "Write your message — I'll send it to admin 💬",
-        "thanks": "Thanks! 🫶",
-
-        "sub_title": "Subscription",
-        "sub_inactive": "Subscription is not active.",
-        "sub_active_until": "Active until: {date}",
-        "pay_stars": "⭐️ Pay with Stars",
-        "pay_sbp": "🏦 Pay via SBP (YooKassa)",
-        "sub_what": "📜 What's included",
-        "sub_check": "🔄 Check payment",
-
-        "admin_title": "Admin",
-        "admin_analytics": "📈 Analytics",
-        "admin_sub_mgmt": "💎 Subscription management",
-        "admin_subscribers": "🧾 Subscribers",
-        "admin_fb_in": "💬 Feedback inbox",
-
-        "sub_toggle": "✅ Subscription: ON / ❌ OFF",
-        "sub_price_stars": "💰 Stars price",
-        "sub_price_rub": "💰 YooKassa price (RUB)",
-        "sub_text_edit": "📜 Edit 'included' text",
-        "sub_keys": "🔑 YooKassa settings",
-
-        "pdf_ready": "📄 Done! Sending PDF 👇",
-        "export_pdf": "📄 Export PDF",
-    },
+    # "en": {...}  # EN блок оставь как есть
 }
-
-def t(key: str, lang: str) -> str:
-    lang = lang if lang in TEXTS else "ru"
-    return TEXTS[lang].get(key, f"[{key}]")
