@@ -1,0 +1,5 @@
+.env
+__pycache__/
+*.pyc
+kbju.sqlite3
+pdf_exports/
